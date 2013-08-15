@@ -1,7 +1,7 @@
 //
 //  OSNavigationController.h
 //
-//  Version 1.0
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 01/06/2013.
 //  Copyright (C) 2011 Charcoal Design

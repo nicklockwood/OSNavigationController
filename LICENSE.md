@@ -1,5 +1,5 @@
 OSNavigationController
-version 1.0, August 14th, 2013
+version 1.0.1, August 15th, 2013
 
 Copyright (C) 2013 Charcoal Design
 

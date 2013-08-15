@@ -1,7 +1,7 @@
 //
 //  OSNavigationController.h
 //
-//  Version 1.0
+//  Version 1.0.1
 //
 //  Created by Nick Lockwood on 01/06/2013.
 //  Copyright (C) 2011 Charcoal Design
@@ -194,13 +194,14 @@
                 transition.type = kCATransitionPush;
                 transition.subtype = kCATransitionFromRight;
                 [self.contentView.layer addAnimation:transition forKey:nil];
+                
+                [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
             }
-            [oldViewController viewWillDisappear:animated];
-            [controller viewWillAppear:animated];
-            [oldViewController.view removeFromSuperview];
-            [_contentView addSubview:controller.view];
-            [oldViewController viewDidDisappear:animated];
-            [controller viewDidAppear:animated];
+            else
+            {
+                [oldViewController.view removeFromSuperview];
+                [_contentView addSubview:controller.view];
+            }
             
             [_delegate navigationController:(UINavigationController *)self
                       didShowViewController:controller
@@ -266,14 +267,15 @@
                 transition.type = kCATransitionPush;
                 transition.subtype = kCATransitionFromLeft;
                 [self.contentView.layer addAnimation:transition forKey:nil];
+                
+                [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
             }
-            [oldViewController viewWillDisappear:animated];
-            [controller viewWillAppear:animated];
-            [[_contentView.subviews lastObject] removeFromSuperview];
-            [_contentView addSubview:controller.view];
-            [oldViewController viewDidDisappear:animated];
-            [controller viewDidAppear:animated];
-            
+            else
+            {
+                [oldViewController.view removeFromSuperview];
+                [_contentView addSubview:controller.view];
+            }
+
             [_delegate navigationController:(UINavigationController *)self
                       didShowViewController:controller
                                    animated:animated];
@@ -295,9 +297,14 @@
 
 - (void)setNavigationBarHidden:(BOOL)hidden
 {
+    [self view];
     CGRect frame = _navigationBar.frame;
     frame.origin.y = hidden? -frame.size.height: 0;
     _navigationBar.frame = frame;
+    frame = _contentView.frame;
+    frame.origin.y = hidden? 0: _navigationBar.frame.size.height;
+    frame.size.height = self.view.bounds.size.height - frame.origin.y;
+    _contentView.frame = frame;
 }
 
 - (void)setNavigationBarHidden:(BOOL)hidden animated:(BOOL)animated
