@@ -1,7 +1,7 @@
 //
 //  OSNavigationController.h
 //
-//  Version 1.0.1
+//  Version 1.0.2
 //
 //  Created by Nick Lockwood on 01/06/2013.
 //  Copyright (C) 2011 Charcoal Design
@@ -78,7 +78,8 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    [self updateViewsAnimated:NO];
+    self.navigationBarHidden = self.navigationBarHidden;
+    self.viewControllers = self.viewControllers;
 }
 
 - (void)setNavigationBar:(UINavigationBar *)navigationBar
@@ -88,69 +89,64 @@
     _navigationBar.delegate = self;
 }
 
-- (void)updateViewsAnimated:(BOOL)animated
-{
-    UIViewController *controller = self.topViewController;
-    
-    //update navigation bar
-    [_navigationBar setItems:@[controller.navigationItem] animated:animated];
-    
-    //update content view
-    if (animated)
-    {
-        CATransition* transition = [CATransition animation];
-        transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-        transition.duration = 0.4;
-        transition.type = kCATransitionPush;
-        transition.subtype = kCATransitionFromRight;
-        [self.contentView.layer addAnimation:transition forKey:nil];
-    }
-    [[_contentView.subviews lastObject] removeFromSuperview];
-    controller.view.frame = _contentView.bounds;
-    [_contentView addSubview:controller.view];
-}
-
 - (void)setViewControllers:(NSArray *)viewControllers animated:(BOOL)animated
 {
-    //get old view controller
-    UIViewController *oldViewController = self.topViewController;
-    for (UIViewController *controller in _viewControllers)
+    //get popped controllers
+    for (UIViewController *controller in self.viewControllers)
     {
-        [controller removeFromParentViewController];
-    }
-    
-    //replace view controllers
-    _viewControllers = viewControllers;
-    for (UIViewController *controller in _viewControllers)
-    {
-        [self addChildViewController:controller];
-    }
-    
-    //add new view controller
-    UIViewController *controller = self.topViewController;
-    if (controller != oldViewController)
-    {
-        if (controller)
+        if (![viewControllers containsObject:controller])
         {
-            //force view to load
-            [self view];
-            controller.view.frame = _contentView.bounds;
+            [controller removeFromParentViewController];
+        }
+    }
+    
+    //get pushed controllers
+    NSString *direction = kCATransitionFromLeft;
+    for (UIViewController *controller in viewControllers)
+    {
+        if (![self.viewControllers containsObject:controller])
+        {
+            direction = kCATransitionFromRight;
+            [self addChildViewController:controller];
+        }
+    }
+    
+    //update view
+    UIViewController *oldViewController = self.topViewController;
+    _viewControllers = [viewControllers copy];
+    UIViewController *controller = self.topViewController;
+    if (_contentView && controller.view.superview != _contentView)
+    {
+        [_delegate navigationController:(UINavigationController *)self
+                 willShowViewController:controller
+                               animated:animated];
+        
+        //update navigation bar
+        NSArray *navigationItems = [viewControllers valueForKeyPath:@"navigationItem"];
+        [_navigationBar setItems:navigationItems animated:animated];
+        
+        //update content
+        controller.view.frame = _contentView.bounds;
+        if (animated)
+        {
+            CATransition* transition = [CATransition animation];
+            transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
+            transition.duration = 0.33;
+            transition.type = kCATransitionPush;
+            transition.subtype = direction;
+            [self.contentView.layer addAnimation:transition forKey:nil];
             
-            [_delegate navigationController:(UINavigationController *)self
-                     willShowViewController:controller
-                                   animated:animated];
-            
-            [oldViewController viewWillDisappear:animated];
-            [controller viewWillAppear:animated];
-            [self updateViewsAnimated:animated];
-            [oldViewController viewDidDisappear:animated];
-            [controller viewDidAppear:animated];
-            
-            [_delegate navigationController:(UINavigationController *)self
-                      didShowViewController:controller
-                                   animated:animated];
+            [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
+        }
+        else
+        {
+            [oldViewController.view removeFromSuperview];
+            [_contentView addSubview:controller.view];
         }
         
+        [_delegate navigationController:(UINavigationController *)self
+                  didShowViewController:controller
+                               animated:animated];
     }
 }
 
@@ -161,53 +157,7 @@
 
 - (void)pushViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    //get old view controller
-    UIViewController *oldViewController = self.topViewController;
-    
-    //replace view controllers
-    _viewControllers = [_viewControllers ?: @[] arrayByAddingObject:viewController];
-    [self addChildViewController:viewController];
-    
-    //add new view controller
-    UIViewController *controller = self.topViewController;
-    if (controller != oldViewController)
-    {
-        if (controller)
-        {
-            //force view to load
-            controller.view.frame = _contentView.bounds;
-            
-            [_delegate navigationController:(UINavigationController *)self
-                     willShowViewController:controller
-                                   animated:animated];
-            
-            //update navigation bar
-            [_navigationBar pushNavigationItem:controller.navigationItem
-                                      animated:animated];
-            
-            //update content view
-            if (animated)
-            {
-                CATransition* transition = [CATransition animation];
-                transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-                transition.duration = 0.33;
-                transition.type = kCATransitionPush;
-                transition.subtype = kCATransitionFromRight;
-                [self.contentView.layer addAnimation:transition forKey:nil];
-                
-                [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
-            }
-            else
-            {
-                [oldViewController.view removeFromSuperview];
-                [_contentView addSubview:controller.view];
-            }
-            
-            [_delegate navigationController:(UINavigationController *)self
-                      didShowViewController:controller
-                                   animated:animated];
-        }
-    }
+    [self setViewControllers:[self.viewControllers arrayByAddingObject:viewController] animated:animated];
 }
 
 - (UIViewController *)popViewControllerAnimated:(BOOL)animated
@@ -227,9 +177,6 @@
 
 - (NSArray *)popToViewController:(UIViewController *)viewController animated:(BOOL)animated
 {
-    //get old view controller
-    UIViewController *oldViewController = self.topViewController;
-    
     //pop to specified controller
     NSMutableArray *poppedControllers = [NSMutableArray array];
     NSMutableArray *controllers = [NSMutableArray arrayWithArray:_viewControllers];
@@ -239,48 +186,8 @@
         [[controllers lastObject] removeFromParentViewController];
         [controllers removeLastObject];
     }
-    _viewControllers = [controllers copy];
     
-    //add new view controller
-    UIViewController *controller = self.topViewController;
-    if (controller != oldViewController)
-    {
-        if (controller)
-        {
-            //force view to load
-            controller.view.frame = _contentView.bounds;
-            
-            [_delegate navigationController:(UINavigationController *)self
-                     willShowViewController:controller
-                                   animated:animated];
-            
-            //update navigation bar
-            [_navigationBar setItems:[controllers valueForKeyPath:@"navigationItem"]
-                            animated:animated];
-            
-            //update content view
-            if (animated)
-            {
-                CATransition* transition = [CATransition animation];
-                transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
-                transition.duration = 0.33;
-                transition.type = kCATransitionPush;
-                transition.subtype = kCATransitionFromLeft;
-                [self.contentView.layer addAnimation:transition forKey:nil];
-                
-                [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
-            }
-            else
-            {
-                [oldViewController.view removeFromSuperview];
-                [_contentView addSubview:controller.view];
-            }
-
-            [_delegate navigationController:(UINavigationController *)self
-                      didShowViewController:controller
-                                   animated:animated];
-        }
-    }
+    [self setViewControllers:controllers animated:animated];
     
     return poppedControllers;
 }
@@ -290,14 +197,10 @@
     return [_viewControllers lastObject];
 }
 
-- (BOOL)navigationBarHidden
-{
-    return _navigationBar.frame.origin.y < 0;
-}
-
 - (void)setNavigationBarHidden:(BOOL)hidden
 {
-    [self view];
+    _navigationBarHidden = hidden;
+    
     CGRect frame = _navigationBar.frame;
     frame.origin.y = hidden? -frame.size.height: 0;
     _navigationBar.frame = frame;
