@@ -1,7 +1,7 @@
 //
 //  OSNavigationController.h
 //
-//  Version 1.0.2
+//  Version 1.0.3
 //
 //  Created by Nick Lockwood on 01/06/2013.
 //  Copyright (C) 2011 Charcoal Design
@@ -50,7 +50,10 @@
 @interface OSNavigationController () <UINavigationBarDelegate>
 
 @property (nonatomic, strong) IBOutlet UINavigationBar *navigationBar;
+@property (nonatomic, weak) IBOutlet UIView *transitionView;
 @property (nonatomic, weak) IBOutlet UIView *contentView;
+
+@property (nonatomic, assign) CGFloat navigationBarHeight;
 
 @end
 
@@ -70,7 +73,7 @@
 {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]))
     {
-        self.viewControllers = @[];
+        _viewControllers = @[];
     }
     return self;
 }
@@ -87,6 +90,7 @@
     _navigationBar.delegate = nil;
     _navigationBar = navigationBar;
     _navigationBar.delegate = self;
+    _navigationBarHeight = navigationBar.frame.size.height;
 }
 
 - (void)setViewControllers:(NSArray *)viewControllers animated:(BOOL)animated
@@ -126,20 +130,21 @@
         [_navigationBar setItems:navigationItems animated:animated];
         
         //update content
-        controller.view.frame = _contentView.bounds;
         if (animated)
         {
-            CATransition* transition = [CATransition animation];
+            CATransition *transition = [CATransition animation];
             transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
             transition.duration = 0.33;
             transition.type = kCATransitionPush;
             transition.subtype = direction;
-            [self.contentView.layer addAnimation:transition forKey:nil];
+            [self.transitionView.layer addAnimation:transition forKey:nil];
             
+            controller.view.frame = _contentView.bounds;
             [UIView transitionFromView:oldViewController.view toView:controller.view duration:0 options:UIViewAnimationOptionTransitionNone completion:NULL];
         }
         else
         {
+            controller.view.frame = _contentView.bounds;
             [oldViewController.view removeFromSuperview];
             [_contentView addSubview:controller.view];
         }
@@ -200,12 +205,21 @@
 - (void)setNavigationBarHidden:(BOOL)hidden
 {
     _navigationBarHidden = hidden;
-    
+    [self.view layoutIfNeeded];
+}
+
+- (void)viewWillLayoutSubviews
+{
     CGRect frame = _navigationBar.frame;
-    frame.origin.y = hidden? -frame.size.height: 0;
+    if (self.view.window.rootViewController == self && [[UIDevice currentDevice].systemVersion floatValue] >= 7)
+    {
+        CGSize statusFrame = [UIApplication sharedApplication].statusBarFrame.size;
+        frame.size.height = _navigationBarHeight + MIN(statusFrame.height, statusFrame.width);
+    }
+    frame.origin.y = _navigationBarHidden? -frame.size.height: 0;
     _navigationBar.frame = frame;
     frame = _contentView.frame;
-    frame.origin.y = hidden? 0: _navigationBar.frame.size.height;
+    frame.origin.y = _navigationBarHidden? 0: _navigationBar.frame.size.height;
     frame.size.height = self.view.bounds.size.height - frame.origin.y;
     _contentView.frame = frame;
 }
@@ -232,11 +246,28 @@
 
 - (BOOL)isKindOfClass:(Class)aClass
 {
+    //pretend that we're a UINavigationController if anyone asks
     if (aClass == [UINavigationController class])
     {
         return YES;
     }
     return [super isKindOfClass:aClass];
+}
+
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)selector
+{
+    //protect against calls to unimplemented UINavigationController methods
+    NSMethodSignature *signature = [super methodSignatureForSelector:selector];
+    if (!signature)
+    {
+        signature = [UINavigationController instanceMethodSignatureForSelector:selector];
+    }
+    return signature;
+}
+
+- (void)forwardInvocation:(NSInvocation *)invocation
+{
+    [invocation invokeWithTarget:nil];
 }
 
 @end

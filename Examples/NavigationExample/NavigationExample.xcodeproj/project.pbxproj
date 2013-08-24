@@ -21,8 +21,8 @@
 		01245C2B17BBD04F003EC7B9 /* MasterViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 01245C2917BBD04F003EC7B9 /* MasterViewController.xib */; };
 		01245C2E17BBD04F003EC7B9 /* DetailViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 01245C2C17BBD04F003EC7B9 /* DetailViewController.xib */; };
 		01245C3817BBD057003EC7B9 /* OSNavigationController.m in Sources */ = {isa = PBXBuildFile; fileRef = 01245C3617BBD057003EC7B9 /* OSNavigationController.m */; };
-		01245C3917BBD057003EC7B9 /* OSNavigationController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 01245C3717BBD057003EC7B9 /* OSNavigationController.xib */; };
 		01245C3B17BBD34A003EC7B9 /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 01245C3A17BBD34A003EC7B9 /* QuartzCore.framework */; };
+		0138EDD317C8FCC90062F2F1 /* OSNavigationController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0138EDD217C8FCC90062F2F1 /* OSNavigationController.xib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -47,8 +47,8 @@
 		01245C2D17BBD04F003EC7B9 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/DetailViewController.xib; sourceTree = "<group>"; };
 		01245C3517BBD057003EC7B9 /* OSNavigationController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OSNavigationController.h; sourceTree = "<group>"; };
 		01245C3617BBD057003EC7B9 /* OSNavigationController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OSNavigationController.m; sourceTree = "<group>"; };
-		01245C3717BBD057003EC7B9 /* OSNavigationController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = OSNavigationController.xib; sourceTree = "<group>"; };
 		01245C3A17BBD34A003EC7B9 /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		0138EDD217C8FCC90062F2F1 /* OSNavigationController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = OSNavigationController.xib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,7 +130,7 @@
 			children = (
 				01245C3517BBD057003EC7B9 /* OSNavigationController.h */,
 				01245C3617BBD057003EC7B9 /* OSNavigationController.m */,
-				01245C3717BBD057003EC7B9 /* OSNavigationController.xib */,
+				0138EDD217C8FCC90062F2F1 /* OSNavigationController.xib */,
 			);
 			name = OSNavigationController;
 			path = ../../OSNavigationController;
@@ -193,7 +193,7 @@
 				01245C2217BBD04F003EC7B9 /* Default-568h@2x.png in Resources */,
 				01245C2B17BBD04F003EC7B9 /* MasterViewController.xib in Resources */,
 				01245C2E17BBD04F003EC7B9 /* DetailViewController.xib in Resources */,
-				01245C3917BBD057003EC7B9 /* OSNavigationController.xib in Resources */,
+				0138EDD317C8FCC90062F2F1 /* OSNavigationController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -339,6 +339,7 @@
 				01245C3317BBD04F003EC7B9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

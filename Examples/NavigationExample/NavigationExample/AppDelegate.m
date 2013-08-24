@@ -8,6 +8,7 @@
 
 #import "AppDelegate.h"
 #import "MasterViewController.h"
+#import "OSNavigationController.h"
 
 
 @implementation AppDelegate
